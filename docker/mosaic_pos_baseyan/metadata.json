@@ -1,0 +1,14 @@
+{
+  "name": "mosaic_pos_baseyan",
+  "parent": "pos_baseyan",
+  "hash": "mosaic_pos_baseyan_checksum.txt",
+  "script": "merge_script.R",
+  "dir_output": {
+    "raster": "result/raster"
+  },
+  "metadata": "metadata.json",
+  "args": [
+    "./result/raster",
+    "../pos_baseyan/result/raster"
+  ]
+}

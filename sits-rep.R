@@ -1,264 +1,442 @@
-sits_rep <- function(script, DIR = "~/sits-rep"){
+sits_rep_classify <- function(tree_name, script){
   
-  # install.packages("Hmisc")
-  
-  if (dir.exists(DIR))
-    base::unlink(DIR, recursive = TRUE, force = TRUE)
-  
-  dir.create(DIR, recursive = TRUE)
-  
-  ## pegar o diretorio corrente e guardar em uma variavel
-  
-  base::setwd(dir = DIR) ## Error in setwd(path_original) : character argument expected
-  base::file.copy(script, base::basename(script), overwrite = TRUE, copy.date = TRUE)
+  source("./algoritms_sits_rep.R")
+  if (tree_exists(tree_name))
+    stop("Já existe uma árvore com esse nome!!!")
 
-  ## verificar se esta seed tambem eh usada pelo tensorflow
-  ## senao tem que ter uma seed para ele tambem
-  
-  seed = 1
+  tree_name <- start_tree(gsub('^\\.|/| |\\$|?|@|#|%|&|\\*|\\(|\\)|^|¨', '', tree_name))
+  new_process <- new_process(tree = tree_name, parent = NULL, process_name = "classification")
+  copy_script_path <- copy_script(script, new_process)
+
+  # TODO
+  # #gerar uma semente aleatoria
+  seed = 42
   set.seed(seed)
   
-  info_r <- list(system = list(seed = seed,
-                               r_version = paste0(R.Version()[c("major","minor")],
-                                                  collapse = "."),
-                               arch = R.Version()$arch,
-                               platform = R.Version()$platform),
-                 script = paste0("", base::basename(script)))
+  info_r <- list(tree = tree_name,
+                 process = "classification", 
+                  system = list(
+                    seed = seed,
+                    r_version = paste0(
+                      R.Version()[c("major","minor")],
+                      collapse = "."),
+                    arch = R.Version()$arch,
+                    platform = R.Version()$platform),
+                  script = copy_script_path)
+
+  # ,
+  # result = paste0(new_process, sep = "/", "result")
   
-  json_append(info_r)
+  json_path <- paste0(new_process, sep = "/", get_metadata_json_name())
+  json_append(info_r, json_path)
   
-  source(file = script)
+  source(file = copy_script_path, chdir = TRUE)
   
-  ## setwd com diretorio corrente pra voltar
+  json_append(list(hash = hash_result(tree_name, "classification")), json_path)
+  
 }
 
-sits_select_bands_ <- function(data.tb, bands){
+hash_result <- function(tree, process){
   
-  bands_list <- list(bands = bands)
-  json_append(bands_list)
-
-  return(data.tb %>%
-           sits::sits_select_bands_(bands = bands))
+  library(digest)
+  
+  path_principal <- paste0(get_dir_principal(), "/", tree, "/", process)
+  input <- paste0(path_principal, "/", "result/raster")
+  output <- paste0(path_principal, "/", process, "_checksum.txt")
+  
+  system(paste0("sha1sum ", input, "/*.* >> ", output))
+  return(output)
 }
 
-library <- function (package, help, pos = 2, lib.loc = NULL, character.only = FALSE, 
-                     logical.return = FALSE, warn.conflicts, quietly = FALSE, 
-                     verbose = getOption("verbose"), mask.ok, exclude, include.only, 
-                     attach.required = missing(include.only)){
+
+
+sits_rep_merge <- function(parent, process_name){
   
-  package <- as.character(substitute(package))
+  source("./algoritms_sits_rep.R")
+  seed = 42
+  set.seed(seed)
+  parent_split <- strsplit(parent, "/")[[1]]
+  new_process_path <- new_process(parent_split[1], parent_split[2], process_name)
+  # dir.create("result/raster")
   
-  base::library(package, character.only = TRUE)
-  packinfo <- installed.packages()[package,]
+  files_input <- get_result_raster(parent_split[1], parent_split[2])
+  files_years <- gsub("^.*MT_[^_]{6}_[0-9]+_[0-9]+_[0-9]+_[0-9]+_([0-9]+)_.*\\.tif", "\\1", files_input)
+  files_years <- files_years[!grepl("probs", files_years)]
   
-  Imports <- packinfo["Imports"]
-  Imports <- gsub("\n", " " ,Imports)
-  Imports <- base::strsplit(Imports, ", ")
-  
-  if (is.na(Imports$Imports[1]) == FALSE){
-    list_imp <- base::lapply(Imports$Imports, function(lib){
+  for (year in unique(files_years)) {
     
-      lib <- base::strsplit(lib, " ")
-      return(list(library = lib[[1]][1],
-                  version = base::toString(utils::packageVersion(lib[[1]][1]))))
-    })
-    
+    year_list <- files_input[files_years == year]
+    res <- lapply(year_list, raster::raster)
+    res$filename <- paste(paste0(new_process_path, sep = "/", "result/raster"), sprintf("MT_%s.tif", year), sep = "/")
+    do.call(raster::merge, res)
+  }
+  
+  json_path <- paste0(new_process_path, sep = "/", get_metadata_json_name())
+  json_append(list(tree = parent_split[1],
+                   parent = parent_split[2],
+                   process = process_name,
+                   data_input = paste0("~", sep = "/", get_relative_path(dirname(files_input[1]))),
+                   result = list(raster = "result/raster"),
+                   args = c("./result/raster",
+                            paste0("../", parent_split[2], "/result/raster"))), json_path)
+                   
+                   
+                   # args = c("~/sits_rep", 
+                   #          process_name, 
+                   #          "result/raster", 
+                   #          get_relative_path(dirname(files_input[1]), parent_split[2]))), json_path)
+
+  script_path <- copy_script("~/.sits-rep/merge_script.R", new_process_path)
+  # hash_result(parent_split[1], process_name)
+  
+  json_append(list(hash = hash_result(parent_split[1], process_name),
+                   script = script_path), json_path)
+  
+}
+
+
+# raster <- "/home/rafael/sits_rep/deep_learning/classification/result/raster"
+# 
+# get_relative_path(raster, "classification")
+# 
+# get_relative_path(dirname(files_input[1]), parent_split[2])
+
+
+
+##
+
+sits_rep_pos_process <- function(parent, process, script){
+  
+  source("./algoritms_sits_rep.R")
+
+  parent_split <- strsplit(parent, "/")[[1]]
+  tree <- gsub('^\\.|/| |\\$|?|@|#|%|&|\\*|\\(|\\)|^|¨', '', parent_split[1])
+  parent <- gsub('^\\.|/| |\\$|?|@|#|%|&|\\*|\\(|\\)|^|¨', '', parent_split[2])
+
+  new_process <- new_process(tree = tree, parent = parent, process_name = process)
+  copy_script_path <- copy_script(script, new_process)
+
+  # TODO - Gerar uma semente aleatoria
+  seed = 42
+  set.seed(seed)
+  
+  json_path <- paste0(new_process, sep = "/", get_metadata_json_name())
+  json_append(list(tree = parent_split[1],
+                   parent = parent_split[2],
+                   process = process), json_path)
+  
+  source(file = copy_script_path, chdir = TRUE)
+  json_append(list(hash = hash_result(tree, process),
+                   script = copy_script_path), json_path)
+  
+}
+
+sits_rep <- function(tree, process, dir_name){
+  
+  source("./algoritms_sits_rep.R")
+  # tree <- "deep_learning"
+  # # process <- "mosaic_pos_baseyan"
+  # dir_name <- "deep_learning"
+
+  DIR_REP <- paste0(get_dir_principal(), "/", tree, "/", "reproducible")
+  if(!dir.exists(DIR_REP))
+    dir.create(DIR_REP)
+  
+  dir_rep_process <- paste0(DIR_REP, "/", dir_name)
+  if(dir.exists(dir_rep_process))
+    stop(paste0("Diretório '", dir_rep_process ,"' já existe!!!"))
+  
+  dir.create(dir_rep_process)
+  
+  write("#!/usr/bin/env Rscript", paste0(dir_rep_process, "/script-rep.R"), sep = " ")
+  write("source(\"sits-rep-docker.R\")", append = TRUE, paste0(dir_rep_process, "/script-rep.R"), sep = " ")
+  
+  list_process <- list_process_json(tree, get_branch_of_tree(tree, process))
+
+  url <- paste0("curl --silent -f -lSL https://index.docker.io/v1/repositories/rafaelmariano/sits/tags/", getNamespaceVersion("sits")[["version"]])
+  if (system(url) == 0){
+    mout_container_exists(get_install_packages(list_process, install_sits = FALSE), dir_rep_process, getNamespaceVersion("sits")[["version"]])
   }else{
-    list_imp <- list(library = Imports$Imports)
-   }
-  
-  import_obj <- list(import = list(package = package, 
-                                   version = unname(packinfo["Version"]), 
-                                   dependencies = list_imp))
-  
-  json_append(import_obj)
-  
-}
-
-
-sits_svm <- function (data.tb = NULL, formula = sits::sits_formula_logref(), scale = FALSE, 
-                      cachesize = 1000, kernel = "radial", degree = 3, coef0 = 0, cost = 10, 
-                      tolerance = 0.001, epsilon = 0.1, cross = 0, ...) {
-  
-  
-  if (!dir.exists("train/"))
-    dir.create("train/", recursive = TRUE)
-  
-  
-  path_rds = paste0("train/", "functions.rds")
-  param_list <- list(model = list(type = "svm", #data.tb = path_rds,
-                                  model = path_rds, formula = path_rds,
-                                  scale = scale, cachesize = cachesize, kernel = kernel,
-                                  degree = degree, coef0 = coef0, cost = cost, tolerance = tolerance,
-                                  epsilon = epsilon, cross = cross, ...))
-  
-  json_append(param_list)
-  
-  model <- sits::sits_svm(data.tb = data.tb, formula = formula, 
-                          scale = scale, cachesize = cachesize, 
-                          kernel = kernel, degree = degree, 
-                          coef0 = coef0, cost = cost, 
-                          tolerance = tolerance, epsilon = epsilon, 
-                          cross = cross, ...)
-  
-  if(file.exists("train/functions.rds")){
-    rds <- base::readRDS(path_rds)
-    rds$model <- model
-    rds$formula <- formula
-    base::saveRDS(rds, file=path_rds)
-    
-  } else{
-    base::saveRDS(list(model = model, formula = formula), 
-                  file=path_rds)
+    create_container(paste("R -e \"", get_install_packages(list_process, install_sits = TRUE), "\""), dir_rep_process)
   }
   
-  return(model)
-}
-
-sits_train <- function (data.tb, ml_method = sits::sits_svm()) 
-{
-  
-  if (!dir.exists("train/"))
-    dir.create("train/", recursive = TRUE)
-  
-  result_train <- data.tb %>% 
-    sits::sits_train(ml_method = ml_method)
-  
-  if(file.exists("train/functions.rds")){
-    rds <- base::readRDS("train/functions.rds")
-    rds$train <- result_train
-    base::saveRDS(rds, file="train/functions.rds")
+  seed <- NULL
+  # p <- list_process[[2]]
+  for(p in list_process){
     
-  } else{
-    base::saveRDS(list(train = result_train), 
-                  file="train/functions.rds")
+    process_rep_dir <- paste0(dir_rep_process, "/", p$process)
+    dir.create(process_rep_dir)
+    
+    file.copy(p$hash, process_rep_dir)
+    file.copy(p$script, process_rep_dir)
+    
+    if (!is.null(p$system$seed))
+      seed <- p$system$seed
+    
+    json <- list(name = p$process,
+                 parent = if(is.null(p$parent))"root" else p$parent,
+                 hash = base::basename(p$hash),
+                 script = base::basename(p$script),
+                 dir_output = p$result,
+                 metadata = "metadata.json")
+    
+    if(!is.null(p$args))
+      json$args <- p$args
+    
+    json_append(json, paste0(process_rep_dir, "/", "metadata.json"))
+    
+    json <- NULL
+    json <- list(process = list(name = p$process,
+                                dir = paste0("./",p$process),
+                                metadata = paste0("./", p$process, "/", "metadata.json"),
+                                script = paste0("./", p$process, "/", base::basename(p$script))))
+   
+    json_append(json, paste0(dir_rep_process, "/", "metadata.json"))
+    
+    write(paste0("execution(\"", p$process,"\")"), append = TRUE, paste0(dir_rep_process, "/script-rep.R"), sep = " ")
   }
   
-  json_append(list(train = "train/functions.rds"))
+  write(paste0("verify_hash()"), append = TRUE, paste0(dir_rep_process, "/script-rep.R"), sep = " ")
+  file.copy("~/.sits-rep/algoritms_sits_rep_docker.R", dir_rep_process)
+  file.copy("~/.sits-rep/sits-rep-docker.R", dir_rep_process)
+
+  # TIRAR O dir_name e o dir_principal
+  json_append(list(seed = seed,
+                   dir_principal = get_dir_principal(),
+                   dir_name = dir_name), paste0(dir_rep_process, "/", "metadata.json"))
   
-  return(result_train)
+
+  # print(paste0(get_dir_principal(), "/", dir_name, "/reproducible/", dir_name))
+  # system(paste0("tar -czvf ", dir_name, ".tar.gz ", paste0(get_dir_principal(), "/", dir_name, "/reproducible/", dir_name)))
+  # 
+  # 
+  # install.packages("dockerfiler")
+  
+  # tar("LC8.tar.gz", 
+  #     files=paste0(get_dir_principal(), "/", "deep_learning", "/reproducible/", "deep_learning"),
+  #     compression="gzip",)
 }
 
-sits_coverage <- function (service = "RASTER", name, timeline = NULL, bands = NULL, 
-                           missing_values = NULL, scale_factors = NULL, minimum_values = NULL, 
-                           maximum_values = NULL, files = NA, tiles_names = NULL, geom = NULL, 
-                           from = NULL, to = NULL) {
+mout_container_exists <- function(run_param, dir_save, sits_version){
   
-  dir_geom = "geom/"
-  dir.create(dir_geom)
-  sf::write_sf(geom, dsn = dir_geom, layer = "geom", driver = "ESRI Shapefile", 
-               delete_layer = TRUE, delete_dsn = TRUE)
+  library(dockerfiler)  
   
-  json <- list(coverage = list(service = service, name = name, 
-                               timeline = timeline,
-                               missing_values = missing_values,
-                               scale_factors = scale_factors, 
-                               minimum_values = minimum_values,
-                               maximum_values = maximum_values, 
-                               files = files, tiles_names = tiles_names, 
-                               geom = paste0(file.path(getwd(), dir_geom)),
-                               from = from, to = to))
+  my_dock <- Dockerfile$new(FROM = gsub(" ", "", paste("rafaelmariano/sits:", sits_version), fixed = TRUE))
+  my_dock$RUN("mkdir -p download")
+  my_dock$RUN("mkdir -p /usr/bin")
+  my_dock$RUN("mkdir -p sits-rep")
+  my_dock$ADD("./", "sits-rep")
+  my_dock$RUN("rm sits-rep/Dockerfile")
+  my_dock$RUN(run_param)
+  my_dock$RUN("Rscript sits-rep/script-rep.R")
   
-  json_append(json)
-  return(sits::sits_coverage(service, name, timeline, bands,
-                             missing_values, scale_factors, minimum_values,
-                             maximum_values, files, tiles_names, geom,
-                             from, to))
+  my_dock$write()
+  file.copy(paste0(getwd(), "/", "Dockerfile"), dir_save)
   
-  ##pegar o intervalo
 }
+
+create_container <- function(run_param, dir_save){
+  
+  library(dockerfiler)  
+  
+  # TODO: Pegar a semente da execução do json da classificacao
+  r_version <- gsub(" ", "", paste(R.version$major, ".", R.version$minor), fixed = TRUE)
+  my_dock <- Dockerfile$new(FROM = gsub(" ", "", paste("r-base:", r_version), fixed = TRUE))
+  
+  my_dock$RUN("apt-get update && apt-get install -y unzip")
+  my_dock$RUN("apt-get install -y libcurl4-openssl-dev libssl-dev libcurl4-openssl-dev libssl-dev libxml2-dev libudunits2-dev")
+  my_dock$RUN("mkdir -p download")
+  my_dock$RUN("mkdir -p /usr/bin")
+  my_dock$RUN("mkdir -p sits-rep")
+  my_dock$ADD("./", "sits-rep")
+  my_dock$RUN("rm sits-rep/Dockerfile")
+  
+  my_dock$RUN("wget --no-verbose \"download.osgeo.org/geos/geos-3.7.1.tar.bz2\" && \\
+	tar -xf geos-3.7.1.tar.bz2 && \\
+	rm geos-3.7.1.tar.bz2 && \\
+	cd geos-3.7.1 && \\
+	./configure && \\
+	make && \\
+	make install && \\
+	cd ..")
+  
+  my_dock$RUN("wget --no-verbose \"download.osgeo.org/proj/proj-5.2.0.tar.gz\" && \\
+	tar -xf proj-5.2.0.tar.gz && \\
+	rm proj-5.2.0.tar.gz && \\
+	cd proj-5.2.0 && \\
+	./configure && \\
+	make && \\
+	make install && \\
+	cd ..")
+  
+  my_dock$RUN("wget --no-verbose \"download.osgeo.org/gdal/2.4.2/gdal-2.4.2.tar.gz\" && \\
+	tar -xf gdal-2.4.2.tar.gz && \\
+	rm gdal-2.4.2.tar.gz && \\
+	cd gdal-2.4.2 && \\
+	./configure && \\
+	make && \\
+	make install && \\
+	cd ..")
+  
+  my_dock$RUN("R -e \"install.packages('devtools')\"")
+  my_dock$RUN("R -e \"install.packages('rgeos')\"")
+  my_dock$RUN("R -e \"install.packages('sf')\"")
+  my_dock$RUN("R -e \"install.packages('raster')\"")
+  my_dock$RUN("R -e \"install.packages('rversions')\"")
+  my_dock$RUN("R -e \"install.packages('roxygen2')\"")
+  my_dock$RUN(run_param)
+  my_dock$RUN("Rscript sits-rep/script-rep.R")
+
+  my_dock$write()
+  file.copy(paste0(getwd(), "/", "Dockerfile"), dir_save)
+}
+
+get_dependencies <- function(dependencies){
  
-sits_classify_cubes <- function (file = NULL, coverage = NULL, ml_model = NULL, interval = "12 month",
-                                 filter = NULL, memsize = 4, multicores = NULL) {
-
-  result_classify <- sits::sits_classify_cubes(file = file, coverage = coverage,
-                                               ml_model = ml_model, interval = interval,
-                                               filter = filter, memsize = memsize,
-                                               multicores = multicores)
-
-
-  
-  base::file.copy(base::dirname(file), ".", overwrite = TRUE, copy.date = TRUE, recursive = TRUE)
-  file.rename(base::basename(base::dirname(file)), "classification")
-  if (!dir.exists("classification/RDS"))
-    dir.create("classification/RDS", recursive = TRUE)
-  
-  base::saveRDS(list(classify_cubes = result_classify), 
-                file="classification/RDS/classify_cubes.rds")
-  
-  json <- list(classify_cubes = list(dir = "classification",
-                                     classify_cubes = "classification/RDS/classify_cubes.rds",
-                                     interval = interval, filter = filter,
-                                     memsize = memsize, multicores = multicores))
-
-  json_append(json)
-
-  return(result_classify)
+  dep_formated <- NULL
+  for(p in 1:length(dependencies)){
+    
+    if(!is.null(dependencies[[p]]$git_commit))
+      dep_formated <- paste(dep_formated, 
+                            paste("devtools::install.github('", dependencies[[p]]$library,
+                                  "',ref='", dependencies[[p]]$git_commit,"');"))
+    else
+      dep_formated <- paste(dep_formated, 
+                          paste("devtools::install_version('", dependencies[[p]]$library,
+                                "',version='", dependencies[[p]]$version,"');"))
+  }
+  return(gsub(" ", "", dep_formated, fixed = TRUE))
 }
 
-## nao eh path_json, eh so o nome
-json_append <- function(list_param, path_json = "data_rep.JSON", order = 1){
+list_process_json <- function(tree, list_process){
   
-  if(base::file.exists(path_json) && 
-     base::file.info(path_json)$size > 0){
-    
-    json_append_exist(list_param, path_json)
-    
+  source("./algoritms_sits_rep.R")
+
+  list_json <- list()
+  for(p in list_process){
+    path_json <- paste(get_dir_principal(), tree, p, get_metadata_json_name(), sep = "/")
+    list_process <- jsonlite::fromJSON(path_json, simplifyVector = FALSE)
+    list_json <- append(list_json, list(list_process))
+  }
+  
+  return(list_json)
+}
+
+get_import <- function(imp, install_sits){
+  
+  is_pk <- NULL
+  dep_formated <- NULL
+  if(!is.null(imp$dependencies)){
+    dep_formated <- paste(dep_formated, 
+                          get_dependencies(imp$dependencies))
+  }
+  if(imp$package == "sits" && install_sits == FALSE)
+    return(gsub(" ", "", dep_formated, fixed = TRUE))
+  
+  if(!is.null(imp$git_commit)){
+    is_pk <- paste("devtools::install.github('", imp$package,"',ref='", imp$git_commit,"');")
   }else{
-    json_append_new(list_param, path_json)
+    is_pk <- paste("devtools::install_version('", imp$package,"',version='", imp$version,"');")
   }
-}
-
-json_is_array <- function (json){
   
-  return(substr(jsonlite::toJSON(json), 1, 1) == "[")
+  return(paste(dep_formated, gsub(" ", "", is_pk, fixed = TRUE)))
 }
 
 
-write_json <- function(json, path){
+get_install_packages <- function(list_process_json, install_sits = FALSE){
   
-  if (base::is.list(json))
-    json <- jsonlite::toJSON(json, 
-                             pretty = TRUE, 
-                             auto_unbox = TRUE)
-  base::write(json, path)
-}
-
-
-json_append_new <- function (list_param, path_json){
+  dep_formated <- NULL
+  is_pk <- NULL
+  list_install_packages <- list()
+  lib_name <- list()
   
-  write_json(list_param, path_json)
-}
-
-
-json_append_exist <- function (list_param, path_json){
- 
-  old_json <- jsonlite::fromJSON(path_json, simplifyVector = FALSE)
-  key <- names(list_param)
-  
-  list_temp <- base::sapply(key, function(k, l, o){
+  for (process_json in list_process_json){
     
-    if (k %in% names(o)){
-      return(base::sapply(k, function(k_, list_p, old_j){
-        
-        if(json_is_array(old_j)){
-          old_j[[length(old_j)+1]] <- list_p
-          l = list(old_j)
-          
-        }else{
-          l = list(list(old_j, list_p))
-         }
-        
-        names(l) = k_
-        return(l)
-        
-      }, l[[k]], o[[k]], simplify = TRUE, USE.NAMES = FALSE))
-      
-    }else{
-      return(l[k])
+    if(!is.null(process_json$import)){
+      if(!is.null(process_json$import$package)){
+        if(!(process_json$import$package %in% lib_name)){
+          is_pk <- get_import(process_json$import, install_sits)
+          lib_name <- append(lib_name, process_json$import$package)
+        }
+      }else{
+        for(imp in process_json$import){
+          if(!(imp$package %in% lib_name)){
+            is_pk <- paste(is_pk, get_import(imp, install_sits))
+            lib_name <- append(lib_name, imp$package)
+          }
+        }
+      }
+        dep_formated <- paste(dep_formated, gsub(" ", "", is_pk, fixed = TRUE))
+        list_install_packages <- c(list_install_packages, dep_formated)
+        dep_formated <- NULL
+        is_pk <- NULL
+      }
+  } 
+  return(gsub(" ", "", paste("install.packages('devtools');", list_install_packages), fixed = TRUE))
+}
+
+get_branch_of_tree <- function(tree, process){
+  
+  ls <- get_tree_as_matrix(tree)
+  
+  list_p <- NULL
+  process_aux <- process
+
+  for(pos in nrow(ls):1){
+    
+    if (ls[pos, ][2] == process_aux){
+      list_p <- c(list_p, ls[pos, ][2])
+      process_aux <- ls[pos, ][1]
     }
-  }, list_param, old_json, simplify = TRUE, USE.NAMES = FALSE)
+ }
   
-  old_json[key] <- list_temp[key]
-  write_json(old_json, path_json)
+  return(rev(list_p))
 }
+
+get_tree_as_matrix <- function(tree){
+  
+  ls <- read.table(paste("~/sits_rep", tree, "graph.txt", sep = "/"),
+                        stringsAsFactors = TRUE)
+  colnames(ls) <- NULL
+  return(as.matrix(ls))
+}
+
+plot_tree <- function(tree){
+  
+  tree <- "arv_1"
+  matrix <- get_tree_as_matrix(tree)
+  g <- igraph::graph.edgelist(matrix)
+  
+  plot(g, edge.arrow.size=.9, edge.arrow.color = "yellow", vertex.label.color="black", 
+       vertex.label.dist=2.5,
+        vertex.color=c("green", "red", "skyblue","skyblue","skyblue" )) 
+  
+  
+  # plot(g)
+}
+
+
+
+pkgTest <- function(x)
+{
+  if (!require(x, character.only = TRUE, quietly = TRUE))
+    install.packages(x,dep=TRUE)
+
+  pkgTest <- function(x)
+  {
+    if (!require(x, character.only = TRUE, quietly = TRUE))
+      install.packages(x,dep=TRUE)
+  }
+  
+  # 
+  # pkgTest("aaaaaaaacccc")
+  # pkgTest("inSitu")
+  # pkgTest("abtest")
+  # 
+  # data(br_mt_1_8K_9classes_6bands)
+  # 
+  # print("a")
+  }
+
+
+  

@@ -1,0 +1,25 @@
+{
+  "process": [
+    {
+      "name": "classification",
+      "dir": "./classification",
+      "metadata": "./classification/metadata.json",
+      "script": "./classification/classification.R"
+    },
+    {
+      "name": "pos_baseyan",
+      "dir": "./pos_baseyan",
+      "metadata": "./pos_baseyan/metadata.json",
+      "script": "./pos_baseyan/classification_smooth.R"
+    },
+    {
+      "name": "mosaic_pos_baseyan",
+      "dir": "./mosaic_pos_baseyan",
+      "metadata": "./mosaic_pos_baseyan/metadata.json",
+      "script": "./mosaic_pos_baseyan/merge_script.R"
+    }
+  ],
+  "seed": 42,
+  "dir_principal": "~/sits_rep",
+  "dir_name": "deep_learning"
+}

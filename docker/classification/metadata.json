@@ -1,0 +1,11 @@
+{
+  "name": "classification",
+  "parent": "root",
+  "hash": "deep_learning_classification_checksum.txt",
+  "script": "classification.R",
+  "dir_output": {
+    "raster": "result/raster",
+    "rds": "result/rds/classify_cubes.rds"
+  },
+  "metadata": "metadata.json"
+}

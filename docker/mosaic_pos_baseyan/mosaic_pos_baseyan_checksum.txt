@@ -1,0 +1,17 @@
+460d05e1f8dd207a614a665019e19cfa51af0f49  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2001.tif
+264f5f60146ea91eaa0ac94014f8a8a5d634dfaa  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2002.tif
+367368904c317f9e7f8ec2847bddeb0c6e8fa662  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2003.tif
+5c136a49a023c7ed89adc9b13e5430a1efe17681  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2004.tif
+a087d84cda0be6bf81fc6e3b1c44abeb1a781c0c  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2005.tif
+5ce4ea3e75fbe1f7b889f33c059f2c0f2f754cb1  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2006.tif
+8fd887373df7ce2cea4e6b82e34415e0a5843dcf  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2007.tif
+17a57b06bdfb5c230e3022d1c64c4fb22d928319  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2008.tif
+a827756330584e72d805b8664208ec9e80a7571d  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2009.tif
+e385bc1fe365abb9ded594c58b174207a7ff7ac3  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2010.tif
+0215bbd08c68475a9f372d093047a0c341d3207c  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2011.tif
+6d0e57d51b77186c79d390e8badb03a6bd2e94f3  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2012.tif
+5ce21383e7a40e8629e40003d7b693841f8c8a3a  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2013.tif
+68cee7454c32936a9aa8ce7949d3f57b7b44b2b7  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2014.tif
+524e33f4232aec6c394ead64e34659f5782c6065  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2015.tif
+de5a4439407364f570ddb4dbf5fe2a1fbc091f4a  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2016.tif
+e29731aa300496a1f9690719731b80be056b226d  /home/rafael/sits_rep/deep_learning/mosaic_pos_baseyan/result/raster/MT_2017.tif

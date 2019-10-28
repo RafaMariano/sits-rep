@@ -1,18 +1,10 @@
-source("~/github/mestrado-sits-rep/sits-rep.R")
+source("sits-rep.R")
 
-  
-sits_rep("~/github/mestrado-sits-rep/script-classify.R")
+sits_rep_classify(tree_name = "deep_learning", "scripts/classification.R")
 
+sits_rep_pos_process("deep_learning/classification","pos_bayes", 
+                     "scripts/classification_smooth.R")
 
-#install.packages("jqr") # dependencies sudo apt-get install libjq-dev
+sits_rep_merge("deep_learning/classification", "mosaic_classification")
+sits_rep_merge("deep_learning/pos_bayes", "mosaic_pos_bayes")
 
-
-# sits_rep("~/github/mestrado-sits-rep/script_mt_original.R")
-
-##armazenar a url doas dados de entrada
-##opcao de container rstudio ou r 
-
-
-# versao instalada
-
-#adicionar o hash da entrada/saida  

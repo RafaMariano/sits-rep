@@ -1,0 +1,10 @@
+{
+  "name": "pos_baseyan",
+  "parent": "classification",
+  "hash": "pos_baseyan_checksum.txt",
+  "script": "classification_smooth.R",
+  "dir_output": {
+    "raster": "result/raster"
+  },
+  "metadata": "metadata.json"
+}

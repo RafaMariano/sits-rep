@@ -2,11 +2,9 @@ library(sits)
 library(magrittr)
 library(inSitu)
 
-
-# #-----------------------------------#
-# ##### 1. Process classification #####
-# #-----------------------------------#
-# 
+#-----------------------------------#
+##### 1. Process classification #####
+#-----------------------------------#
 outputDir <- "MT"
 
 # outputDir  <- "MT" # Output directory
@@ -17,7 +15,7 @@ processors <- 4
 # # Create directory
 if (!dir.exists(paste(outputDir, "1.Classification", sep = "/")))
   dir.create(paste(outputDir, "1.Classification", sep = "/"), recursive = TRUE)
-#
+
 # # Get samples from inSitu package
 data(br_mt_1_8K_9classes_6bands)
 #
@@ -37,7 +35,7 @@ model.deeplearning <-  sits_train(samples.tb,
                                   ml_method = sits_deeplearning(
                                     units           = c(512, 512, 512),
                                     activation       = 'relu',
-                                    dropout_rates    = c(0.50, 0.40, 0.35),
+                                    dropout_rates    = c(0.50, 0.45, 0.40),
                                     epochs = 1,
                                     batch_size = 128,
                                     validation_split = 0.2))
@@ -50,6 +48,7 @@ cov.tb <- sits_coverage(service = "EOCUBES",
                         # timeline = "48 month",
                          # geom = sf::read_sf(system.file("extdata/MT/shape/MT.shp", package = "inSitu")))
                         geom = sf::read_sf("~/github/mestrado-sits-rep/shape/MT-DUAS-GRADES/clip_mt_2.shp"))
+                        #geom = sf::read_sf("~/geom/geom.shp"))
 
 # classify the raster image
 rasters.tb <- sits_classify_cubes(file = paste(paste(outputDir, "1.Classification", sep = "/"), "MT", sep = "/"),

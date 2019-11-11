@@ -4,6 +4,7 @@ execution <- function(process){
   
   my_env <- FALSE
   set.seed(get_seed())
+  keras::use_session_with_seed(get_seed())
   
   args <- get_args_of_process(process)
   if(!is.null(args)){

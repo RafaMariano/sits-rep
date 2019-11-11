@@ -84,6 +84,10 @@ get_process <- function(){
   return(get_base_metadata()$name)
 }
 
+get_coverage_geom <- function(){
+  return(get_base_metadata()$coverage$geom)
+}
+
 get_args <- function(){
   return(get_base_metadata()$args)
 }
@@ -131,7 +135,6 @@ hash_result <- function(process){
 #   return(list.files(paste0(path, sep = "/", metadata_json$result$raster),
 #                     full.names = TRUE))
 # }
-
 
 
 get_result_rds <- function(){
@@ -214,6 +217,21 @@ sits_train <- function (data.tb, ml_method = sits::sits_svm())
   return(train)
 }
 
+
+
+sits_coverage <- function (service = "RASTER", name, timeline = NULL, bands = NULL,
+                           missing_values = NULL, scale_factors = NULL, minimum_values = NULL,
+                           maximum_values = NULL, files = NA, tiles_names = NULL, geom = NULL,
+                           from = NULL, to = NULL) {
+
+   	
+  geom <- sf::read_sf(get_coverage_geom())
+  return(sits::sits_coverage(service, name, timeline, bands,
+                             missing_values, scale_factors, minimum_values,
+                             maximum_values, files, tiles_names, geom,
+                             from, to))
+
+}
 
 sits_classify_cubes <- function (file = NULL, coverage = NULL, ml_model = NULL, interval = "12 month",
                                  filter = NULL, memsize = 4, multicores = NULL) {

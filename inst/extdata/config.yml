@@ -1,0 +1,5 @@
+default:
+
+    DIR_PRINCIPAL           :    "~/sits.rep"
+    METADATA_BASE_NAME      :    "metadata.JSON"
+    GRAPH_BASE_NAME	    :	 "graph.txt"

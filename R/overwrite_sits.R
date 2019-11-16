@@ -11,8 +11,7 @@ sits_train <- function (data.tb, ml_method = sits::sits_svm())
   if(.is_model(model_args, sits::sits_deeplearning)){
     keras::use_session_with_seed(42)
 
-    train <- data.tb %>%
-      sits::sits_train(ml_method = ml_method)
+    train <- sits::sits_train(data.tb, ml_method = ml_method)
 
     sits::sits_save_keras(train, "train/model.h5", "train/model.rds")
 
@@ -40,6 +39,9 @@ sits_coverage <- function (service = "RASTER", name, timeline = NULL, bands = NU
     unlink("coverage", recursive = TRUE)
 
   dir.create("coverage/geom", recursive = TRUE)
+
+  if (is.character(geom))
+    geom <- sf::read_sf(geom)
 
   layer <- "geom"
   sf::write_sf(geom, dsn = "coverage/geom", layer = layer, driver = "ESRI Shapefile",
@@ -76,6 +78,11 @@ sits_classify_cubes <- function (file = NULL, coverage = NULL, ml_model = NULL, 
 
   path <- paste0(sits.rep.env$config$DIR_PRINCIPAL, sep = "/", get_tree(), sep = "/", "classification")
   path <- paste0(dirname(path), sep = "/", "classification")
+
+  print(get_tree())
+  print(path)
+
+  print( paste0(path, sep = "/", "result/raster", sep = "/", base::basename(file)))
 
   rasters.tb <- sits::sits_classify_cubes(file = paste0(path, sep = "/", "result/raster", sep = "/", base::basename(file)),
                                           coverage = coverage,

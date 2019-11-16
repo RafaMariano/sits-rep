@@ -37,7 +37,7 @@ sits.rep_reproduce <- function(tree, process, dir_name){
                  hash = base::basename(p$hash),
                  script = base::basename(p$script),
                  dir_output = p$result,
-                 metadata = "metadata.json")
+                 metadata = "metadata.JSON")
 
     if (!is.null(p$coverage$geom)){
       file.copy(base::dirname(p$coverage$geom), process_rep_dir, recursive = TRUE)
@@ -53,7 +53,7 @@ sits.rep_reproduce <- function(tree, process, dir_name){
     json <- NULL
     json <- list(process = list(name = p$process,
                                 dir = paste0("./",p$process),
-                                metadata = paste0("./", p$process, "/", "metadata.json"),
+                                metadata = paste0("./", p$process, "/", "metadata.JSON"),
                                 script = paste0("./", p$process, "/", base::basename(p$script))))
 
     json_save(json, dir_rep_process)
@@ -98,16 +98,16 @@ sits.rep_reproduce <- function(tree, process, dir_name){
   for (process_json in list_process_json){
 
     if(!is.null(process_json$import)){
-      if(!is.null(process_json$import$package)){
-        if(!(process_json$import$package %in% lib_name)){
+      if(!is.null(process_json$import$library)){
+        if(!(process_json$import$library %in% lib_name)){
           is_pk <- .get_import(process_json$import, install_sits)
-          lib_name <- append(lib_name, process_json$import$package)
+          lib_name <- append(lib_name, process_json$import$library)
         }
       }else{
         for(imp in process_json$import){
-          if(!(imp$package %in% lib_name)){
+          if(!(imp$library %in% lib_name)){
             is_pk <- paste(is_pk, .get_import(imp, install_sits))
-            lib_name <- append(lib_name, imp$package)
+            lib_name <- append(lib_name, imp$library)
           }
         }
       }
@@ -117,6 +117,7 @@ sits.rep_reproduce <- function(tree, process, dir_name){
       is_pk <- NULL
     }
   }
+
   return(gsub(" ", "", paste("install.packages('devtools');", list_install_packages), fixed = TRUE))
 
 }
@@ -126,17 +127,23 @@ sits.rep_reproduce <- function(tree, process, dir_name){
 
   is_pk <- NULL
   dep_formated <- NULL
+
+  if(!is.null(packageDescription(imp$library)$Priority))
+    if(packageDescription(imp$library)$Priority == 'base')
+      return(NULL)
+
   if(!is.null(imp$dependencies)){
     dep_formated <- paste(dep_formated,
                           .get_dependencies(imp$dependencies))
   }
-  if(imp$package == "sits" && install_sits == FALSE)
+
+  if(imp$library == "sits" && install_sits == FALSE)
     return(gsub(" ", "", dep_formated, fixed = TRUE))
 
   if(!is.null(imp$git_commit)){
-    is_pk <- paste("devtools::install.github('", imp$package,"',ref='", imp$git_commit,"');")
+    is_pk <- paste("devtools::install_github('",imp$git_repository, "/", imp$library,"',ref='", imp$git_commit,"');")
   }else{
-    is_pk <- paste("devtools::install_version('", imp$package,"',version='", imp$version,"');")
+    is_pk <- paste("devtools::install_version('", imp$library,"',version='", imp$version,"',force = TRUE, upgrade = FALSE, repos = 'http://cloud.r-project.org/');") #,
   }
 
   return(paste(dep_formated, gsub(" ", "", is_pk, fixed = TRUE)))
@@ -149,14 +156,20 @@ sits.rep_reproduce <- function(tree, process, dir_name){
   dep_formated <- NULL
   for(p in 1:length(dependencies)){
 
+    if (is.null(dependencies[[p]]) || length(dependencies[[p]]$library) == 0)
+      next
+
+    if(!is.null(packageDescription(dependencies[[p]]$library)$Priority))
+      if(packageDescription(dependencies[[p]]$library)$Priority == 'base')
+        next
+
     if(!is.null(dependencies[[p]]$git_commit))
       dep_formated <- paste(dep_formated,
-                            paste("devtools::install.github('", dependencies[[p]]$library,
+                            paste("devtools::install_github('",dependencies[[p]]$git_repository, "/", dependencies[[p]]$library,
                                   "',ref='", dependencies[[p]]$git_commit,"');"))
     else
       dep_formated <- paste(dep_formated,
                             paste("devtools::install_version('", dependencies[[p]]$library,
-                                  "',version='", dependencies[[p]]$version,"');"))
-  }
+                                  "',version='", dependencies[[p]]$version,"',force = TRUE, upgrade = FALSE, repos = 'http://cloud.r-project.org/');"))   }
   return(gsub(" ", "", dep_formated, fixed = TRUE))
 }

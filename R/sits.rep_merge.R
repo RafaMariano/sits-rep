@@ -21,7 +21,7 @@ sits.rep_merge <- function(parent, process_name){
   }
 
   # json_path <- paste0(new_process_path, sep = "/", get_metadata_json_name())
-  json_append(list(tree = parent_split[1],
+  json_save(list(tree = parent_split[1],
                    parent = parent_split[2],
                    process = process_name,
                    data_input = paste0("~", sep = "/", get_relative_path(dirname(files_input[1]))),

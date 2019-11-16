@@ -19,12 +19,10 @@ sits.rep_classify <- function(tree_name, script){
     seed = 42
     set.seed(seed)
 
-    info_r <- list(tree = tree_name,
-                   process = "classification",
-                   system = list(seed = seed,
-                                 r_version = paste0(R.Version()[c("major","minor")],collapse = "."),
-                                 arch = R.Version()$arch,
-                                 platform = R.Version()$platform),
+    info_r <- list(system = list(seed = seed,
+                   r_version = paste0(R.Version()[c("major","minor")],collapse = "."),
+                   arch = R.Version()$arch,
+                   platform = R.Version()$platform),
                    script = copy_script_path)
 
 

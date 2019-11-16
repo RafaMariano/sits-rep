@@ -1,5 +1,5 @@
 execution <- function(process){
-
+  
   source("./algoritms_sits_rep_docker.R")
   
   my_env <- FALSE
@@ -11,15 +11,15 @@ execution <- function(process){
     my_env <- new.env()
     my_env$commandArgs <- function(...) args
   }
- 
+  
   source(file = get_script(process), chdir = TRUE, local = my_env)
   hash_rep <- hash_result(process)
   
   json_append(list(reproducible = list(name = process,
                                        hash_original = get_hash_of_process(process),
-                                       hash_rep = hash_rep)), "./metadata.json")
+                                       hash_rep = hash_rep)), "./metadata.JSON")
   
-  json_append(list(hash_rep = base::basename(hash_rep)), paste0("./", process, "/metadata.json"))
+  json_append(list(hash_rep = base::basename(hash_rep)), paste0("./", process, "/metadata.JSON"))
 }
 
 
@@ -47,7 +47,7 @@ verify_hash <- function(){
   metadata$reproducible <- json
   write(jsonlite::toJSON(metadata, 
                          pretty = TRUE, 
-                         auto_unbox = TRUE), "./metadata.json")
+                         auto_unbox = TRUE), "./metadata.JSON")
   
 }
 

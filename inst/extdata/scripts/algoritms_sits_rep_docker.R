@@ -1,29 +1,29 @@
 # Acessa o metadado do diretório base
 get_base_metadata <- function(){
-  return(jsonlite::fromJSON(paste0(".", sep = "/", "metadata.json"),
+  return(jsonlite::fromJSON(paste0(".", sep = "/", "metadata.JSON"),
                             simplifyVector = FALSE))
 }
 
 # Acessa o metadado de um processo em outro diretório
 get_metadata_another_process <- function(process){
-  return(jsonlite::fromJSON(paste0("..", sep = "/", process , "/metadata.json"),
+  return(jsonlite::fromJSON(paste0("..", sep = "/", process , "/metadata.JSON"),
                             simplifyVector = FALSE))
 }
 
 # Acessa um metadado de qualquer diretório
 get_metadata_of_process <- function(process){
-  return(jsonlite::fromJSON(paste0(".", sep = "/", process , "/metadata.json"),
+  return(jsonlite::fromJSON(paste0(".", sep = "/", process , "/metadata.JSON"),
                             simplifyVector = FALSE))
 }
 
 # get_metadata <- function(){
-#   return(jsonlite::fromJSON(paste0(".", sep = "/", "metadata.json"),
+#   return(jsonlite::fromJSON(paste0(".", sep = "/", "metadata.JSON"),
 #                      simplifyVector = FALSE))
 # }
 # 
 # get_metadata_by_process <- function(process){
 # 
-#   return(jsonlite::fromJSON(paste0("..", sep = "/", process, "/", "metadata.json"),
+#   return(jsonlite::fromJSON(paste0("..", sep = "/", process, "/", "metadata.JSON"),
 #                             simplifyVector = FALSE))
 # }
 # 
@@ -33,7 +33,7 @@ get_metadata_of_process <- function(process){
 # 
 # 
 # get_process <- function(){
-#   return(jsonlite::fromJSON(paste0( "./", "metadata.json"),
+#   return(jsonlite::fromJSON(paste0( "./", "metadata.JSON"),
 #                             simplifyVector = FALSE)$name)
 # }
 # get_metadata_by_another_process <- function(process){
@@ -69,11 +69,11 @@ get_rds_by_another_process <- function(process){
 }
 
 get_output_by_another_process <- function(process){
-
+  
   out <- get_metadata_another_process(process)$dir_output
   if(is.null(out))
     return("./result/raster")
-
+  
   return(out)
 }
 
@@ -107,7 +107,7 @@ get_script <- function(process){
 
 
 hash_result <- function(process){
-
+  
   output <- paste0("./", process, "/rep_checksum.txt")
   commands <- paste0("sha1sum ", "./", process, "/result/raster", "/*.* >> ", output)
   
@@ -223,39 +223,39 @@ sits_coverage <- function (service = "RASTER", name, timeline = NULL, bands = NU
                            missing_values = NULL, scale_factors = NULL, minimum_values = NULL,
                            maximum_values = NULL, files = NA, tiles_names = NULL, geom = NULL,
                            from = NULL, to = NULL) {
-
-   	
+  
+  
   geom <- sf::read_sf(get_coverage_geom())
   return(sits::sits_coverage(service, name, timeline, bands,
                              missing_values, scale_factors, minimum_values,
                              maximum_values, files, tiles_names, geom,
                              from, to))
-
+  
 }
 
 sits_classify_cubes <- function (file = NULL, coverage = NULL, ml_model = NULL, interval = "12 month",
                                  filter = NULL, memsize = 4, multicores = NULL) {
-
+  
   if(!dir.exists("./result"))
     dir.create("./result")
-
+  
   dir.create("./result/raster")
-
+  
   rasters.tb <- sits::sits_classify_cubes(file = paste0(getwd(), "/", "result/raster/", base::basename(file)),
                                           # file = file,
                                           coverage = coverage,
                                           ml_model = ml_model, interval = interval,
                                           filter = filter, memsize = memsize,
                                           multicores = multicores)
-
+  
   rds_path <- paste0("./result", "/", "rds")
   if (!dir.exists(rds_path))
     dir.create(rds_path, recursive = TRUE)
-
+  
   base::saveRDS(list(rasters.tb = rasters.tb),
                 file = paste0(rds_path, sep = "/", "classify_cubes.rds"))
-
-
+  
+  
   return(rasters.tb)
 }
 
@@ -268,16 +268,16 @@ sits_bayes_postprocess <- function(raster_class,
   
   dir.create("./result/raster")
   sits::sits_bayes_postprocess(raster_class =  get_result_rds()$rasters.tb,
-                                         window = window,
-                                         noise = noise,
-                                         file = paste0( "./result/raster", sep = "/",
-                                                       base::basename(file)))
-
+                               window = window,
+                               noise = noise,
+                               file = paste0( "./result/raster", sep = "/",
+                                              base::basename(file)))
+  
 }
 
 
 json_append <- function(list_param, path_json, order = 1){
-
+  
   if(base::file.exists(path_json) && 
      base::file.info(path_json)$size > 0){
     

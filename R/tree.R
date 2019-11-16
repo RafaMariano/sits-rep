@@ -50,6 +50,10 @@ new_process <- function(tree, parent = NULL, process_name){
   dir.create(new_process_path)
   dir.create(paste0(new_process_path, sep = "/", "result"))
   dir.create(paste0(new_process_path, sep = "/", "result/raster"))
+  dir.create(paste0(new_process_path, sep = "/", "result/rds"))
+
+  json_save(list(tree = tree,
+                 process = process_name), new_process_path)
 
   graph_path <- paste0(sits.rep.env$config$DIR_PRINCIPAL,
                        sep = "/",

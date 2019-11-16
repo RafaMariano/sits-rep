@@ -31,28 +31,28 @@ samples.tb <- br_mt_1_8K_9classes_6bands %>%
 #   samples.tb %>%
 #   sits_train(ml_method = sits_svm(cost = 1, formula = sits_formula_linear()))
 
-model.deeplearning <-  sits_train(samples.tb,
-                                  ml_method = sits_deeplearning(
-                                    units           = c(512, 512, 512),
-                                    activation       = 'relu',
-                                    dropout_rates    = c(0.50, 0.45, 0.40),
-                                    epochs = 1,
-                                    batch_size = 128,
-                                    validation_split = 0.2))
-
-
-# # # create a coverage to classify MT
-cov.tb <- sits_coverage(service = "EOCUBES",
+# model.deeplearning <-  sits_train(samples.tb,
+#                                   ml_method = sits_deeplearning(
+#                                     units           = c(512, 512, 512),
+#                                     activation       = 'relu',
+#                                     dropout_rates    = c(0.50, 0.45, 0.40),
+#                                     epochs = 1,
+#                                     batch_size = 128,
+#                                     validation_split = 0.2))
+#
+#
+# # # # create a coverage to classify MT
+cov.tb <- sits::sits_coverage(service = "EOCUBES",
                         name = "MOD13Q1/006",
-                        bands = bands,
+                        bands = c("ndvi"),
                         # timeline = "48 month",
-                         # geom = sf::read_sf(system.file("extdata/MT/shape/MT.shp", package = "inSitu")))
-                        geom = sf::read_sf("~/github/mestrado-sits-rep/shape/MT-DUAS-GRADES/clip_mt_2.shp"))
+                         geom = sf::read_sf(system.file("extdata/MT/shape/MT.shp", package = "inSitu")))
+                        # geom = sf::read_sf("~/geom/geom.shp"))
                         #geom = sf::read_sf("~/geom/geom.shp"))
-
-# classify the raster image
-rasters.tb <- sits_classify_cubes(file = paste(paste(outputDir, "1.Classification", sep = "/"), "MT", sep = "/"),
-                                  coverage = cov.tb,
-                                  ml_model = model.deeplearning,
-                                  memsize = mem_size,
-                                  multicores = processors)
+#
+# # classify the raster image
+# rasters.tb <- sits_classify_cubes(file = paste(paste(outputDir, "1.Classification", sep = "/"), "MT", sep = "/"),
+#                                   coverage = cov.tb,
+#                                   ml_model = model.deeplearning,
+#                                   memsize = mem_size,
+#                                   multicores = processors)

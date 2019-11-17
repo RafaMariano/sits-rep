@@ -38,11 +38,12 @@ classify <- function(tree, samples, type_model, param_model, coverage, type_clas
   script <- append(script, "ml_trained <- sits_train(samples(), model)")
   script <- append(script, " ")
 
-  cv <- do.call(.sits_coverage, c(coverage, save_path = new_process))
-
-  # coverage$geom
+  # cv <- do.call(.sits_coverage, c(coverage, save_path = new_process))
+  cv <- do.call(sits::sits_coverage, coverage)
+  coverage <- do.call(.sits_coverage,  c(coverage, save_path = new_process))
 
   cv_p <- base::strsplit(paste0(deparse(coverage), collapse = "\n"), "list")[[1]][2]
+
   script <- append(script, paste0("cv <- sits_coverage", cv_p))
   script <- append(script, " ")
 
@@ -146,25 +147,24 @@ classify <- function(tree, samples, type_model, param_model, coverage, type_clas
 
 
 .sits_coverage <- function (service = "RASTER", name, timeline = NULL, bands = NULL,
-                           missing_values = NULL, scale_factors = NULL, minimum_values = NULL,
-                           maximum_values = NULL, files = NA, tiles_names = NULL, geom = NULL,
-                           from = NULL, to = NULL, save_path)
+                            missing_values = NULL, scale_factors = NULL, minimum_values = NULL,
+                            maximum_values = NULL, files = NA, tiles_names = NULL, geom = NULL,
+                            from = NULL, to = NULL, save_path)
 {
 
-  cv_path <- paste0(save_path, "/coverage")
+  cv_path <- paste0(save_path, "/geom")
+
 
   if(!dir.exists(cv_path))
     dir.create(cv_path, recursive = TRUE)
-     # unlink(cv_path, recursive = TRUE)
 
-  if(!dir.exists(paste0(cv_path, "/geom")))
-    dir.create(paste0(cv_path, "/geom"))
 
   if (is.character(geom))
     geom <- sf::read_sf(geom)
 
+
   layer <- "geom"
-  sf::write_sf(geom, dsn = paste0(cv_path, "/geom"), layer = layer, driver = "ESRI Shapefile",
+  sf::write_sf(geom, dsn = cv_path, layer = layer, driver = "ESRI Shapefile",
                delete_layer = TRUE, delete_dsn = TRUE)
 
   json <- list(coverage = list(service = service,
@@ -175,13 +175,61 @@ classify <- function(tree, samples, type_model, param_model, coverage, type_clas
                                minimum_values = minimum_values,
                                maximum_values = maximum_values,
                                files = files, tiles_names = tiles_names,
-                               geom = paste0(cv_path, "/geom/", layer, ".shp"),
+                               geom = paste0(cv_path, "/", layer, ".shp"),
                                from = from, to = to))
 
   json_save(json, save_path)
-  return(sits::sits_coverage(service, name, timeline, bands,
-                             missing_values, scale_factors, minimum_values,
-                             maximum_values, files, tiles_names, geom,
-                             from, to))
+
+  return(list(service = service, name = name, timeline = timeline,
+                             bands = bands, missing_values = missing_values,
+                             scale_factors = scale_factors, minimum_values = minimum_values,
+                             maximum_values = maximum_values, files = files,
+                             tiles_names = tiles_names, geom = paste0("geom/", layer, ".shp"),
+                             from = from, to = to))
   ##pegar o intervalo
 }
+
+
+# .sits_coverage <- function (service = "RASTER", name, timeline = NULL, bands = NULL,
+#                            missing_values = NULL, scale_factors = NULL, minimum_values = NULL,
+#                            maximum_values = NULL, files = NA, tiles_names = NULL, geom = NULL,
+#                            from = NULL, to = NULL, save_path)
+# {
+#
+#   cv_path <- paste0(save_path, "/coverage")
+#
+#   if(!dir.exists(cv_path))
+#     dir.create(cv_path, recursive = TRUE)
+#      # unlink(cv_path, recursive = TRUE)
+#
+#   if(!dir.exists(paste0(cv_path, "/geom")))
+#     dir.create(paste0(cv_path, "/geom"))
+#
+#   if (is.character(geom))
+#     geom <- sf::read_sf(geom)
+#
+#   layer <- "geom"
+#   sf::write_sf(geom, dsn = paste0(cv_path, "/geom"), layer = layer, driver = "ESRI Shapefile",
+#                delete_layer = TRUE, delete_dsn = TRUE)
+#
+#   json <- list(coverage = list(service = service,
+#                                name = name,
+#                                timeline = timeline,
+#                                missing_values = missing_values,
+#                                scale_factors = scale_factors,
+#                                minimum_values = minimum_values,
+#                                maximum_values = maximum_values,
+#                                files = files, tiles_names = tiles_names,
+#                                geom = paste0(cv_path, "/geom/", layer, ".shp"),
+#                                from = from, to = to))
+#
+#   # ,
+#   # args = list(input = paste0("geom/", layer, ".shp"))
+#
+#   json_save(json, save_path)
+#   return(sits::sits_coverage(service, name, timeline, bands,
+#                              missing_values, scale_factors, minimum_values,
+#                              maximum_values, files, tiles_names, geom,
+#                              from, to))
+#   ##pegar o intervalo
+# }

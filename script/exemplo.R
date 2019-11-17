@@ -33,7 +33,7 @@ coverage <- list(service = "EOCUBES",
 
 cubes <- list(multicores = 4, interval = "48 month", memsize = 1, filter = NULL)
 
-sits.rep::classify("tree_4", samples, "deeplearning", model, coverage, "cubes", cubes)
+sits.rep::classify("tree_6", samples, "deeplearning", model, coverage, "cubes", cubes)
 
 
 pos_p <- function(input, output, rds){
@@ -50,7 +50,7 @@ pos_p <- function(input, output, rds){
   return(result)
 }
 
-sits.rep::pos_processing("tree_3/classification", "pos_baseyan", pos_p)
+sits.rep::pos_processing("tree_6/classification", "pos_baseyan", pos_p)
 # O último parâmetro, CUBES, pode ser um enum e, por tanto, os parâmetros do
 # não obrigatórios do sits_classify_cubes serão usados o default
 # sits.rep::sits.rep_classify("tree_1", samples, svm_model, coverage, CUBES)
@@ -71,4 +71,4 @@ merge <- function(input, output, rds){
 
 }
 
-sits.rep::pos_processing("tree_3/pos_baseyan", "mosaic", merge)
+sits.rep::pos_processing("tree_6/pos_baseyan", "mosaic", merge)

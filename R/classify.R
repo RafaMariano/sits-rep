@@ -14,26 +14,43 @@ classify <- function(tree, samples, type_model, param_model, coverage, type_clas
                              process_name = "classification")
 
   script <- list()
+  script <- c("library(\"sits\")")
+  script <- append(script, " ")
   script <- append(script, paste("samples <- ", (paste0(deparse(samples), collapse = "\n"))))
+  script <- append(script, " ")
+
+  script <- append(script, c("args <- commandArgs(trailingOnly = TRUE)"))
+  script <- append(script, c("data_output  <- args[1][[1]]"))
+  script <- append(script, " ")
 
   if(type_model == "deeplearning"){
+
     model <- do.call(sits::sits_deeplearning, param_model)
 
     p <- base::strsplit(paste0(deparse(param_model), collapse = "\n"), "list")[[1]][2]
     script <- append(script, paste0("model <- sits_deeplearning", p))
+    script <- append(script, " ")
+
   }
+
 
   ml_trained <- .sits_train(samples(), model, new_process)
   script <- append(script, "ml_trained <- sits_train(samples(), model)")
+  script <- append(script, " ")
 
   cv <- do.call(.sits_coverage, c(coverage, save_path = new_process))
+
+  # coverage$geom
+
   cv_p <- base::strsplit(paste0(deparse(coverage), collapse = "\n"), "list")[[1]][2]
-  script <- append(script, paste0("cv <- sits_coverage", p))
+  script <- append(script, paste0("cv <- sits_coverage", cv_p))
+  script <- append(script, " ")
 
   if(!is.null(param_classify$file))
-    file <- paste0(new_process, "/", base:basename(param_classify$file))
+    file <- normalizePath(paste0(new_process, "/", base:basename(param_classify$file)), mustWork = FALSE)
   else
-    file <- paste0(new_process, "/result/raster/classify")
+    file <- normalizePath(paste0(new_process, "/result/raster/classify"), mustWork = FALSE)
+
 
   # param_classify <- append(list(file = file,
                                 # coverage = cv, ml_model = ml_trained), param_classify)
@@ -43,7 +60,7 @@ classify <- function(tree, samples, type_model, param_model, coverage, type_clas
     param <- base::strsplit(paste0(deparse(param_classify), collapse = "\n"), "list|\\(|\\)")[[1]]
     param <- param[sapply(param, function(x){return(x == "")}) == FALSE]
 
-    param <- paste0("file = \"", file, "\", coverage = cv, ml_model = ml_trained,", param)
+    param <- paste0("file = data_output, coverage = cv, ml_model = ml_trained,", param)
 
     p <- append(list(file = file, coverage = cv, ml_model = ml_trained), param_classify)
     rasters.tb <- do.call(sits::sits_classify_cubes, p)
@@ -63,7 +80,8 @@ classify <- function(tree, samples, type_model, param_model, coverage, type_clas
                                platform = R.Version()$platform),
                  classification = list(param = param_classify),
                  result = list(raster = paste0(new_process, "/result/raster"),
-                               rds = paste0(new_process, "/result/rds/classify_cubes.rds")))
+                               rds = paste0(new_process, "/result/rds/classify_cubes.rds")),
+                 args = list(input = NULL, output = file, rds = FALSE))
 
 
   json_save(info_r, new_process)
@@ -72,19 +90,8 @@ classify <- function(tree, samples, type_model, param_model, coverage, type_clas
   for(f in .get_library(samples))
     json_save(import(f), new_process)
 
-  .create_script(script, new_process)
-
-}
-
-
-.create_script <- function(script, path){
-
-  path <- paste0(path, "/classify.R")
-  write("library(\"sits\")", path, sep = " ")
-
-  for(s in script){
-    write(s, path, append = TRUE, sep = " ")
-  }
+  json_save(list(hash = hash_result(tree, "classification"),
+                 script = create_script(script, new_process, "classification")), new_process)
 
 }
 

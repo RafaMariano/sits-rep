@@ -2,6 +2,7 @@
 export(sits.rep_classify)
 export(classify)
 export(sits.rep_pos_processing)
+export(pos_processing)
 export(sits.rep_merge)
 export(sits.rep_reproduce)
 export(plot_tree)

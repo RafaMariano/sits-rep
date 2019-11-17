@@ -52,9 +52,6 @@ new_process <- function(tree, parent = NULL, process_name){
   dir.create(paste0(new_process_path, sep = "/", "result/raster"))
   dir.create(paste0(new_process_path, sep = "/", "result/rds"))
 
-  json_save(list(tree = tree,
-                 process = process_name), new_process_path)
-
   graph_path <- paste0(sits.rep.env$config$DIR_PRINCIPAL,
                        sep = "/",
                        tree,
@@ -68,8 +65,10 @@ new_process <- function(tree, parent = NULL, process_name){
 
   }else {
 
-    if(!.parent_exists(tree, parent))
+    if(!.parent_exists(tree, parent)){
+      unlink(new_process_path, recursive = TRUE, force = TRUE)
       stop(paste0("The parent not exist in tree '", tree ,"' !!!"))
+    }
 
     ls <- read.table(graph_path, stringsAsFactors = TRUE)
     colnames(ls) <- NULL
@@ -78,6 +77,10 @@ new_process <- function(tree, parent = NULL, process_name){
                              matrix(c(parent, process_name), nc = 2, byrow = TRUE))
 
   }
+
+  json_save(list(tree = tree,
+                 parent = parent,
+                 process = process_name), new_process_path)
 
   write.table(connect_process,
               file = graph_path, row.names=FALSE, col.names=FALSE)
@@ -132,8 +135,7 @@ get_result_rds <- function(tree, process){
   path_principal <- paste0(sits.rep.env$config$DIR_PRINCIPAL, sep = "/", tree, sep = "/" , process)
   metadata_json <- jsonlite::fromJSON(paste0(path_principal, sep = "/", sits.rep.env$config$METADATA_BASE_NAME), simplifyVector = FALSE)
 
-  return(base::readRDS(paste0(path_principal, sep = "/",
-                              metadata_json$result$rds)))
+  return(base::readRDS(metadata_json$result$rds))
 
 }
 

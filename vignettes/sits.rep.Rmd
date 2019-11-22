@@ -1,0 +1,58 @@
+---
+output:
+    pdf_document:
+      citation_package: natbib
+      df_print: tibble
+      fig_caption: yes
+      keep_tex: no
+      template: "../inst/extdata/markdown/latex-ms.tex"
+title: 'sits.rep: Reproducibility of Satellite Image Time Series.'
+author:
+- affiliation: National Institute for Space Research (INPE), Brazil
+  name: Rafael Mariano
+- affiliation: National Institute for Space Research (INPE), Brazil
+  name: Pedro R. Andrade
+- affiliation: National Institute for Space Research (INPE), Brazil
+  name: Gilberto Queiroz
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+endnote: false
+fontfamily: mathdesign
+fontfamilyoptions: adobe-utopia
+fontsize: 11pt
+graphics: true
+mathtools: true
+vignette: |
+  %\VignetteEncoding{UTF-8} 
+  %\VignetteEngine{knitr::rmarkdown} 
+  %\VignetteIndexEntry{SITS: Data Analysis and Machine Learning using Satellite Image Time Series}
+---
+
+O sits.rep é um pacote para a linguagem R com o propósito de reproduzir as classificações e iterações pós classificação realizadas pelo pacote 
+
+Este documento irá descrever duas funções do pacote sits.rep 
+
+```{r setup, include=FALSE}
+
+library(sits.rep)
+```
+
+## R Markdown
+
+
+
+```{r cars}
+
+
+sits.rep::sits.rep_classify("arv_1", "~/workspace/sits.rep/script/classification.R")
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+sits.rep::sits.rep_reproduce("arv_1", "classification", "rep_deeplearnings")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

@@ -79,11 +79,6 @@ sits_classify_cubes <- function (file = NULL, coverage = NULL, ml_model = NULL, 
   path <- paste0(sits.rep.env$config$DIR_PRINCIPAL, sep = "/", get_tree(), sep = "/", "classification")
   path <- paste0(dirname(path), sep = "/", "classification")
 
-  print(get_tree())
-  print(path)
-
-  print( paste0(path, sep = "/", "result/raster", sep = "/", base::basename(file)))
-
   rasters.tb <- sits::sits_classify_cubes(file = paste0(path, sep = "/", "result/raster", sep = "/", base::basename(file)),
                                           coverage = coverage,
                                           ml_model = ml_model, interval = interval,

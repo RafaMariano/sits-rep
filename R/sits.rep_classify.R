@@ -27,16 +27,15 @@ sits.rep_classify <- function(tree_name, script){
 
 
     json_save(info_r, new_process)
-    source(file = copy_script_path, chdir = TRUE, local = .get_env())
+    source(file = copy_script_path, chdir = TRUE, local = .get_env(), verbose = FALSE)
     json_save(list(hash = hash_result(tree_name, "classification")), new_process)
 
   }, error = function(cond){
 
-    # if(dir.exists(tree_name))
-    #   unlink(tree_name, recursive = TRUE)
-
+    if(delete_path(tree_name) == 1)
+      message(paste0("It is not possible delete tree directory '", tree_name, "'."))
     message(cond)
-    return(NA)
+
   })
 
 }

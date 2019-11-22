@@ -40,6 +40,7 @@ create_container <- function(run_param, dir_save){
 	cd ..")
 
   my_dock$RUN("pip3.6 install --ignore-installed --upgrade tensorflow==1.9.0")
+  my_dock$RUN("pip3.6 install --ignore-installed --upgrade h5py==2.10.0")
 
   my_dock$RUN("wget --no-verbose \"download.osgeo.org/geos/geos-3.7.1.tar.bz2\" && \\
 	tar -xf geos-3.7.1.tar.bz2 && \\

@@ -77,7 +77,7 @@ create_container <- function(run_param, dir_save){
 	make && \\
 	make install && \\
 	cd ..")
-
+  my_dock$RUN("ldconfig")
   my_dock$RUN("R -e \"install.packages('devtools')\"")
   my_dock$RUN("R -e \"install.packages('rgeos')\"")
   my_dock$RUN("R -e \"install.packages('sf')\"")

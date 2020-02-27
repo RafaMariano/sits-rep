@@ -1,12 +1,13 @@
-create_script <- function(script, path, script_name){
+create_script <- function(script, tree, process, script_name){
 
-  path <- paste0(path, "/", script_name, ".R")
+  path_principal <- paste0(sits.rep.env$config$DIR_PRINCIPAL, "/", tree, "/", process, "/", script_name, ".R")
+  # path <- paste0(path, "/", script_name, ".R")
 
   for(s in script){
-    write(s, path, append = TRUE, sep = " ")
+    write(s, path_principal, append = TRUE, sep = " ")
   }
 
-  return(path)
+  return(paste0(script_name, ".R"))
 
 }
 

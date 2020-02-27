@@ -55,8 +55,7 @@ sits_coverage <- function (service = "RASTER", name, timeline = NULL, bands = NU
                                minimum_values = minimum_values,
                                maximum_values = maximum_values,
                                files = files, tiles_names = tiles_names,
-                               geom = paste0(sits.rep.env$config$DIR_PRINCIPAL, "/", get_tree(), "/",
-                                             get_process(), "/coverage/geom/", layer, ".shp"),
+                               geom = paste0("coverage/geom/", layer, ".shp"),
                                from = from, to = to))
 
   json_save(json)
@@ -68,63 +67,73 @@ sits_coverage <- function (service = "RASTER", name, timeline = NULL, bands = NU
 }
 
 
+# sits_classify_cubes <- function (file = NULL, coverage = NULL, ml_model = NULL, interval = "12 month",
+#                                  filter = NULL, memsize = 4, multicores = NULL)
+# {
+#
+#   if (!dir.exists("result") || !dir.exists("result/raster"))
+#     dir.create("result/raster", recursive = TRUE)
+#
+#
+#   path <- paste0(sits.rep.env$config$DIR_PRINCIPAL, sep = "/", get_tree(), sep = "/", "classification")
+#   path <- paste0(dirname(path), sep = "/", "classification")
+#
+#   rasters.tb <- sits::sits_classify_cubes(file = paste0(path, sep = "/", "result/raster", sep = "/", base::basename(file)),
+#                                           coverage = coverage,
+#                                           ml_model = ml_model, interval = interval,
+#                                           filter = filter, memsize = memsize,
+#                                           multicores = multicores)
+#
+#   rds_path <- paste0("result", sep = "/", "rds")
+#   if (!dir.exists(rds_path))
+#     dir.create(rds_path, recursive = TRUE)
+#
+#   base::saveRDS(list(rasters.tb = rasters.tb),
+#                 file = paste0(rds_path, sep = "/", "classify_cubes.rds"))
+#
+#   json <- list(classification = list(param = list(interval = interval, filter = filter,
+#                                                   memsize = memsize, multicores = multicores)),
+#                result = list(raster = paste0("result", sep = "/", "raster"),
+#                              rds = paste0(rds_path, sep = "/", "classify_cubes.rds")))
+#
+#
+#   json_save(json)
+#   return(rasters.tb)
+# }
+
 sits_classify_cubes <- function (file = NULL, coverage = NULL, ml_model = NULL, interval = "12 month",
                                  filter = NULL, memsize = 4, multicores = NULL)
 {
 
-  if (!dir.exists("result") || !dir.exists("result/raster"))
-    dir.create("result/raster", recursive = TRUE)
+  if (!dir.exists(sits.rep.env$config$FILE_PATH))
+    dir.create(sits.rep.env$config$FILE_PATH, recursive = TRUE)
 
+  path <-  normalizePath(paste0(sits.rep.env$config$DIR_PRINCIPAL,
+                                sep = "/",
+                                get_tree(),
+                                sep = "/",
+                                sits.rep.env$config$CLASSIFY_PROCESS_DIR_NAME),
+                         mustWork = FALSE)
 
-  path <- paste0(sits.rep.env$config$DIR_PRINCIPAL, sep = "/", get_tree(), sep = "/", "classification")
-  path <- paste0(dirname(path), sep = "/", "classification")
-
-  rasters.tb <- sits::sits_classify_cubes(file = paste0(path, sep = "/", "result/raster", sep = "/", base::basename(file)),
+  rasters.tb <- sits::sits_classify_cubes(file = paste0(path, sep = "/", sits.rep.env$config$FILE_PATH, sep = "/", base::basename(file)),
                                           coverage = coverage,
                                           ml_model = ml_model, interval = interval,
                                           filter = filter, memsize = memsize,
                                           multicores = multicores)
 
-  rds_path <- paste0("result", sep = "/", "rds")
-  if (!dir.exists(rds_path))
-    dir.create(rds_path, recursive = TRUE)
+  if (!dir.exists(sits.rep.env$config$RDS_PATH))
+    dir.create(sits.rep.env$config$RDS_PATH, recursive = TRUE)
 
   base::saveRDS(list(rasters.tb = rasters.tb),
-                file = paste0(rds_path, sep = "/", "classify_cubes.rds"))
+                file = paste0(sits.rep.env$config$RDS_PATH, sep = "/", sits.rep.env$config$RDS_NAME))
 
   json <- list(classification = list(param = list(interval = interval, filter = filter,
                                                   memsize = memsize, multicores = multicores)),
-               result = list(raster = paste0("result", sep = "/", "raster"),
-                             rds = paste0(rds_path, sep = "/", "classify_cubes.rds")))
+               result = list(file = TRUE, rds = TRUE))
 
 
   json_save(json)
   return(rasters.tb)
-}
-
-
-sits_bayes_postprocess <- function(raster_class,
-                                   window = matrix(1, nrow = 3, ncol = 3, byrow = TRUE),
-                                   noise = 100,
-                                   file)
-{
-
-  if(!dir.exists("result") || !dir.exists("result/raster"))
-    dir.create("result/raster", recursive = TRUE)
-
-  rds <- get_result_rds(get_tree(), get_parent())
-  path_result <- paste0(sits.rep.env$config$DIR_PRINCIPAL, sep = "/", get_tree(), sep = "/", get_process())
-
-  result <- sits::sits_bayes_postprocess(raster_class = rds$rasters.tb,
-                                         window = window,
-                                         noise = noise,
-                                         file = paste0(path_result, sep = "/", "result/raster", sep = "/",
-                                                       base::basename(file)))
-  # base::saveRDS(list(rasters.tb = rasters.tb),
-  #               file = paste0(rds_path, sep = "/", "classify_cubes.rds"))
-
-  json_save(list(result = list(raster = paste0("result", sep = "/", "raster"))))
-
 }
 
 

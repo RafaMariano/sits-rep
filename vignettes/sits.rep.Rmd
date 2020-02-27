@@ -43,7 +43,7 @@ library(sits.rep)
 ```{r cars}
 
 
-sits.rep::sits.rep_classify("arv_1", "~/workspace/sits.rep/script/classification.R")
+sits.rep::classify("arv_1", "~/workspace/sits.rep/script/classification.R")
 
 ```
 
@@ -52,7 +52,7 @@ sits.rep::sits.rep_classify("arv_1", "~/workspace/sits.rep/script/classification
 You can also embed plots, for example:
 
 ```{r pressure, echo=FALSE}
-sits.rep::sits.rep_reproduce("arv_1", "classification", "rep_deeplearnings")
+sits.rep::reproduce("arv_1", "classification", "rep_deeplearnings")
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

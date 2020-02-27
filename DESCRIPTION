@@ -16,17 +16,19 @@ Imports:
     dockerfiler (>= 0.1.3),
     sits (== 1.12.6)
 Collate:
-    'sits.rep_classify.R'
     'sits.rep_pos_processing.R'
     'sits.rep_merge.R'
     'sits.rep_reproduce.R'
+    'reproduce.R'
     'plot_tree.R'
     'classify.R'
+    'test_new_classify.R'
     'copy_script.R'
     'docker.R'
     'hash.R'
     'json.R'
     'library.R'
+    'test_new_pos_processing.R'
     'overwrite_sits.R'
     'path.R'
     'pos_processing.R'

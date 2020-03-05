@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/product.schema.json",
+  "title": "Classification Schema",
+  "description": "Information about the classification process performed by sits.rep.",
+  "type": "object",
+  "properties":{
+	"tree": {
+	      "description": "Project name where the process is stored.",
+		  "type": "string",
+		  "examples" : ["deep_learning", "tree_process_svm", "tree_process_deeplearning"]
+        },
+    "parent": {
+		"description": "Process already executed stored in the same tree as the child process.",
+		"type":"string",
+		"examples": ["classification"]
+        },
+	"process": {
+		"description": "New process name.",
+		"type": "string",
+		"examples": ["pos_bayesian", "merge"]
+	},
+	"seed": {
+		"description": "Execution seed value.",
+		"type": "integer",
+		"examples": [4,123,68]
+	},
+	"import": {
+		"description": "Name and extension of the executed script.",
+		"type": "array",
+		"items": {
+			"type": "object",
+			"properties": {
+				"library" : {
+					"$ref": "#/definitions/library"
+				},
+				"dependencies": {
+					"description": "Dependency libraries in a library",
+					"type": "array",
+					"items":{
+						"$ref": "#/definitions/library"
+					}
+				}
+			}
+		}
+    },
+    "args": {
+        "type": "object",
+		"properties": {
+            "input_file": {
+                "description": "Checks whether the parent process generated output files and served as input to the process.",
+                "type": "boolean",
+                "examples": ["true", "false"]
+            },
+            "input_rds": {
+                "description": "CChecks whether the parent process generated an output rds and served as input to the process.",
+                "type": "boolean",
+                "examples": ["true", "false"]
+            }
+        }
+	},
+	"result": {
+		"type": "object",
+		"properties": {
+			"file": {
+				"description": "Checks whether the process generated any output files.",
+				"type": "boolean",
+				"examples": ["true", "false"]
+			},
+			"rds": {
+				"description": "Checks whether the process generated a output rds.",
+				"type": "boolean",
+				"examples": ["true", "false"]
+			}
+		}		
+	},
+	"hash": {
+		"description": "Checks whether the process has generated a hash file about the results.",
+		"type": "boolean",
+		"examples": ["true", "false"]
+	}	        	
+  },
+"definitions": {
+	"library": {
+		"description" : "Script dependency libraries.",
+		"type": "object",
+		"properties": {
+			"name": {
+				"description": "Library name.",
+				"type": "string",
+				"examples": ["sits", "tibble"]
+			},
+			"version" : {
+				"description": "Library version.",
+				"type": "string",
+				"examples": ["1.2", "3-4.5","1.8-3"]
+				},
+			"git_commit": {
+				"description": "Hash code of the commit in case the library was installed through a GitHub repository.",
+				"type":"string",
+				"examples": ["80c2d8c70fa06bec6d5457b006e6a47b897d0359"]
+			},
+			"git_repository" : {
+				"description": "Library GitHub repository.",
+				"type":"string",
+				"examples": ["e-sensing"]
+			}
+		}
+	}
+}, 
+"required": [ "tree", "parent", "process", "seed", "args", "result", "hash"]
+}

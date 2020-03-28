@@ -139,6 +139,41 @@ get_result_rds <- function(tree, process){
 }
 
 
+delete_branch_of_tree <- function(tree, parent = NULL, process){
+
+  process <- "smooth"
+  parent <- "classification"
+
+  ls <- get_tree_as_matrix(tree)
+
+  if(is.null(parent))
+    parent <- tree
+
+  print(ls)
+
+  for(pos in nrow(ls):1){
+
+    if (ls[pos, ][1] == parent && ls[pos, ][2] == process){
+      ls <- ls[-c(pos), ]
+      break
+    }
+  }
+
+  ls <- matrix(ls, nc = 2, byrow = TRUE)
+
+  print(ls)
+
+  graph_path <- paste0(sits.rep.env$config$DIR_PRINCIPAL,
+                       sep = "/",
+                       tree,
+                       sep = "/",
+                       sits.rep.env$config$GRAPH_BASE_NAME)
+
+  write.table(ls, file = graph_path, row.names=FALSE, col.names=FALSE)
+
+}
+
+
 get_branch_of_tree <- function(tree, process){
 
   ls <- get_tree_as_matrix(tree)

@@ -5,11 +5,16 @@ sits_train <- function (data.tb, ml_method = sits::sits_svm())
   if (!dir.exists("train"))
     dir.create("train")
 
+  seed <- jsonlite::fromJSON(sits.rep.env$config$METADATA_BASE_NAME)$seed
+
   model_args <- ls(environment(ml_method))
   model_args <- model_args[!model_args %in% c("result", "result_fun", "...")]
 
   if(.is_model(model_args, sits::sits_deeplearning)){
-    keras::use_session_with_seed(42)
+
+    # TODO - Definir uma semente aleatória, salvar no metadado e pegar ela antes de seta
+    # no keras e svn
+    keras::use_session_with_seed(seed)
 
     train <- sits::sits_train(data.tb, ml_method = ml_method)
 
@@ -19,11 +24,29 @@ sits_train <- function (data.tb, ml_method = sits::sits_svm())
     # train <- sits::sits_load_keras("train/model.h5", "train/model.rds")
     # device_lib.list_local_devices()
   }
+  else{
 
-  # else if (is_model(model_args, sits::sits_svm))
+      set.seed(seed)
+      train <- sits::sits_train(data.tb, ml_method = ml_method)
+      base::saveRDS(train, file = "train/model.rds")
+
+  }
+  # else if (.is_model(model_args, sits::sits_svm)){
+  #
+  #   set.seed(42)
+  #   print("a")
+  #   train <- sits::sits_train(data.tb, ml_method = ml_method)
+  #   print("b")
+  #   e1071::write.svm(train, svm.file = "train/model.svm", scale.file = "train/svm.scale",
+  #                    yscale.file = "train/svm.yscale")
+  #
+  #   # write.svm(object, svm.file = "Rdata.svm",
+  #   #           scale.file = "Rdata.scale", yscale.file = "Rdata.yscale")
+  #
+  # }
   #   return("sits_svm")
 
-  json_save(list(train = list(var_name = "train", location = "train/model.rds")))
+  json_save(list(train = list(directory = "train", file = "model.rds")))
   return(train)
 
 }
@@ -47,16 +70,11 @@ sits_coverage <- function (service = "RASTER", name, timeline = NULL, bands = NU
   sf::write_sf(geom, dsn = "coverage/geom", layer = layer, driver = "ESRI Shapefile",
                delete_layer = TRUE, delete_dsn = TRUE)
 
-  json <- list(coverage = list(service = service,
+  json <- list(coverage = list(directory = "coverage",
+                               service = service,
                                name = name,
                                timeline = timeline,
-                               missing_values = missing_values,
-                               scale_factors = scale_factors,
-                               minimum_values = minimum_values,
-                               maximum_values = maximum_values,
-                               files = files, tiles_names = tiles_names,
-                               geom = paste0("coverage/geom/", layer, ".shp"),
-                               from = from, to = to))
+                               geom = paste0("geom/", layer, ".shp")))
 
   json_save(json)
   return(sits::sits_coverage(service, name, timeline, bands,
@@ -127,12 +145,12 @@ sits_classify_cubes <- function (file = NULL, coverage = NULL, ml_model = NULL, 
   base::saveRDS(list(rasters.tb = rasters.tb),
                 file = paste0(sits.rep.env$config$RDS_PATH, sep = "/", sits.rep.env$config$RDS_NAME))
 
-  json <- list(classification = list(param = list(interval = interval, filter = filter,
-                                                  memsize = memsize, multicores = multicores)),
-               result = list(file = TRUE, rds = TRUE))
-
-
-  json_save(json)
+  # json <- list(classification = list(param = list(interval = interval, filter = filter,
+  #                                                 memsize = memsize, multicores = multicores)),
+  #              result = list(file = TRUE, rds = TRUE))
+  #
+  #
+  # json_save(json)
   return(rasters.tb)
 }
 
@@ -164,3 +182,14 @@ sits_classify_cubes <- function (file = NULL, coverage = NULL, ml_model = NULL, 
   return(TRUE)
 
 }
+
+
+# .get_seed <- function(){
+#
+#   json <- jsonlite::fromJSON(sits.rep.env$config$METADATA_BASE_NAME)
+#
+#   return(json$seed)
+#
+# }
+
+

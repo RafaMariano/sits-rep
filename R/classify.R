@@ -1,39 +1,43 @@
 #' @export
-classify <- function(tree_name, script){
+classify <- function(tree, script){
 
-  if (tree_exists(tree_name))
-    stop(paste0("Already exist the tree name: '", tree_name, "'."))
+  if (tree_exists(tree))
+    stop(paste0("Already exist the tree name: '", tree, "'."))
 
-  tree_name <- start_tree(gsub('^\\.|/| |\\$|?|@|#|%|&|\\*|\\(|\\)|^|¨', '', tree_name))
+  tree <- start_tree(gsub('^\\.|/| |\\$|?|@|#|%|&|\\*|\\(|\\)|^|¨', '', tree))
 
   tryCatch({
 
-    new_process <- new_process(tree = tree_name,
+    new_process <- new_process(tree = tree,
                                parent = NULL,
-                               process_name = "classification")
+                               process_name = sits.rep.env$config$CLASSIFY_PROCESS_DIR_NAME)
 
     copy_script_path <- copy_script(script, new_process)
 
     # TODO
     # #gerar uma semente aleatoria
-    seed = 42
+
+
+    # Documentação R: Random Number Generation (RNG)
+    # RNGversion can be used to set the random generators as they were in an earlier R version (for reproducibility).
+
+    # seed = 42
+    seed = sample(0:2^18, 1)
     set.seed(seed)
 
-    info_r <- list(system = list(seed = seed,
-                   r_version = paste0(R.Version()[c("major","minor")],collapse = "."),
-                   arch = R.Version()$arch,
-                   platform = R.Version()$platform),
-                   script = copy_script_path)
-
+    info_r <- list(seed = seed,
+                   script = base::basename(copy_script_path))
 
     json_save(info_r, new_process)
     source(file = copy_script_path, chdir = TRUE, local = .get_env(), verbose = FALSE)
-    json_save(list(hash = hash_result(tree_name, "classification")), new_process)
+    json_save(list(hash = hash_result(tree, sits.rep.env$config$CLASSIFY_PROCESS_DIR_NAME)), new_process)
 
   }, error = function(cond){
 
-    if(delete_path(tree_name) == 1)
-      message(paste0("It is not possible delete tree directory '", tree_name, "'."))
+    if(delete_path(tree) == 1)
+      message(paste0("It is not possible delete tree directory '", tree, "'."))
+
+    # delete_branch_of_tree(tree = tree, process = sits.rep.env$config$CLASSIFY_PROCESS_DIR_NAME)
     message(cond)
 
   })
@@ -52,3 +56,4 @@ classify <- function(tree_name, script){
 
   return(env)
 }
+

@@ -11,7 +11,7 @@ reproduce <- function(tree, process, dir_name){
 
   for(p in list_of_process){
 
-    process_rep_dir <- paste0(dir_rep_process, "/", p$process)
+    process_rep_dir <- normalizePath(paste0(dir_rep_process, "/", p$process), mustWork = FALSE)
     dir.create(process_rep_dir)
 
     json <- list(name = p$process,
@@ -365,7 +365,7 @@ reproduce <- function(tree, process, dir_name){
   path_principal <- paste0(sits.rep.env$config$DIR_PRINCIPAL, "/", tree, "/", process)
   json <- jsonlite::fromJSON(paste0(path_principal, "/", sits.rep.env$config$METADATA_BASE_NAME), simplifyVector = FALSE)
 
-  return(paste0(path_principal, "/", json$coverage$geom))
+  return(normalizePath(paste0(path_principal, "/coverage/", json$coverage$geom), mustWork = FALSE))
 
 }
 

@@ -29,19 +29,18 @@ install_dependencies <- function(imp){
       next
 
     if(!(lib$library %in% pkg))
-        if(!is.null(lib$git_commit))
-          devtools::install_github(paste0(lib$git_repository, "/", lib$library), ref = lib$git_commit)
-
-        else
-          devtools::install_version(lib$library, version = lib$version, force = TRUE, upgrade = FALSE, repos = 'http://cloud.r-project.org/')
+      if(!is.null(lib$git_commit))
+        devtools::install_github(paste0(lib$git_repository, "/", lib$library), ref = lib$git_commit, upgrade = "never")
 
     else
-        if(getNamespaceVersion(lib$library) != lib$version)
-          devtools::install_version(lib$library, version = lib$version, force = TRUE, upgrade = FALSE, repos = 'http://cloud.r-project.org/')
+      devtools::install_version(lib$library, version = lib$version, force = TRUE, upgrade = "never", repos = 'http://cloud.r-project.org/')
+
+    else
+      if(getNamespaceVersion(lib$library) != lib$version)
+        devtools::install_version(lib$library, version = lib$version, force = TRUE, upgrade = "never", repos = 'http://cloud.r-project.org/')
 
   }
 }
-
 
 # get_metadata <- function(){
 #   return(jsonlite::fromJSON(paste0(".", sep = "/", "metadata.JSON"),
@@ -383,6 +382,5 @@ json_append_exist <- function (list_param, path_json){
   old_json[key] <- list_temp[key]
   write_json(old_json, path_json)
 }
-
 
 

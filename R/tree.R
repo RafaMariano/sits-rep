@@ -45,7 +45,7 @@ new_process <- function(tree, parent = NULL, process_name){
                              process_name)
 
   if(dir.exists(new_process_path))
-    stop(paste0("ALready exist this process '", process_name, "' in tree '", tree,"'."))
+    stop(paste0("Already exist this process '", process_name, "' in tree '", tree,"'."))
 
   # dir.create(new_process_path)
   dir.create(paste0(new_process_path, sep = "/", sits.rep.env$config$FILE_PATH), recursive = TRUE)

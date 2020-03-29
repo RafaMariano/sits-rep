@@ -4,16 +4,16 @@ pos_processing <- function(tree, parent, process, func){
   # parent_split <- strsplit(parent, "/")[[1]]
   # tree <- gsub('^\\.|/| |\\$|?|@|#|%|&|\\*|\\(|\\)|^|¨', '', parent_split[1])
   # parent <- gsub('^\\.|/| |\\$|?|@|#|%|&|\\*|\\(|\\)|^|¨', '', parent_split[2])
+  new_process <- new_process(tree = tree, parent = parent, process_name = process)
+
   tryCatch({
-      new_process <- new_process(tree = tree, parent = parent, process_name = process)
+
 
       seed = .get_seed(tree, parent)
       set.seed(seed)
 
       input_file <- .get_file_result_if_exist(tree, parent)
       input_rds <- .get_rds_result_if_exist(tree, parent)
-
-      print(input_rds)
 
       if(identical(input_file, FALSE) && identical(input_rds, FALSE))
         stop("The parent process has no output results (file or rds).")
@@ -60,7 +60,7 @@ pos_processing <- function(tree, parent, process, func){
       }
 
       json$hash <- hash_result(tree, process)
-      json$script <-
+      json$script <- script
       json_save(json, new_process)
 
     }, error = function(cond){
@@ -222,7 +222,7 @@ pos_processing <- function(tree, parent, process, func){
   metadata_json <- jsonlite::fromJSON(paste0(path_principal, "/", sits.rep.env$config$METADATA_BASE_NAME), simplifyVector = FALSE)
 
   if(metadata_json$result$file)
-    return(paste0(path_principal, "/", sits.rep.env$config$FILE_PATH))
+    return(normalizePath(paste0(path_principal, "/", sits.rep.env$config$FILE_PATH), mustWork = FALSE))
 
   return(FALSE)
 }

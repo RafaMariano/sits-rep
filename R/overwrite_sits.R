@@ -133,7 +133,8 @@ sits_classify_cubes <- function (file = NULL, coverage = NULL, ml_model = NULL, 
                                 sits.rep.env$config$CLASSIFY_PROCESS_DIR_NAME),
                          mustWork = FALSE)
 
-  rasters.tb <- sits::sits_classify_cubes(file = paste0(path, sep = "/", sits.rep.env$config$FILE_PATH, sep = "/", base::basename(file)),
+  raster_path <-  paste0(path, sep = "/", sits.rep.env$config$FILE_PATH, sep = "/", base::basename(file))
+  rasters.tb <- sits::sits_classify_cubes(file = raster_path,
                                           coverage = coverage,
                                           ml_model = ml_model, interval = interval,
                                           filter = filter, memsize = memsize,
@@ -145,12 +146,13 @@ sits_classify_cubes <- function (file = NULL, coverage = NULL, ml_model = NULL, 
   base::saveRDS(list(rasters.tb = rasters.tb),
                 file = paste0(sits.rep.env$config$RDS_PATH, sep = "/", sits.rep.env$config$RDS_NAME))
 
+  json <- list(result = list(file = TRUE, rds = TRUE))
   # json <- list(classification = list(param = list(interval = interval, filter = filter,
   #                                                 memsize = memsize, multicores = multicores)),
   #              result = list(file = TRUE, rds = TRUE))
   #
   #
-  # json_save(json)
+  json_save(json)
   return(rasters.tb)
 }
 

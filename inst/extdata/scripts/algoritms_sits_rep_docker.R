@@ -86,7 +86,7 @@ get_args_of_process <- function(process){
     return(NULL)
 
   if(args$input_file)
-    args$input_file <- paste0('../', metadata$parent, '/result/file/')
+    args$input_file <- normalizePath(paste0('../', metadata$parent, '/result/file/'), mustWork = FALSE)
   else
     args$input_file <- NULL
 
@@ -104,7 +104,7 @@ get_args_of_process <- function(process){
   if(!dir.exists(paste0(metadata$name, "/result/rds")))
     dir.create(paste0(metadata$name, "/result/rds"), recursive = TRUE)
 
-  args$output <- paste0('./result/file')
+  args$output <- normalizePath(paste0('./result/file'), mustWork = FALSE)
 
   return(args)
 }
@@ -245,35 +245,35 @@ is_hash_equals <- function(list_hash_1, list_hash_2){
 ##########################- FUNÇÕES MAPEADAS DO SITS - ################################################
 ################################################################################################################
 ################################################################################################################
-
-sits_train <- function (data.tb, ml_method = sits::sits_svm())
-{
-
-  train <- NULL
-
-  model_args <- ls(environment(ml_method))
-  model_args <- model_args[!model_args %in% c("result", "result_fun", "...")]
-
-  if(is_model(model_args, sits::sits_deeplearning)){
-
-    keras::use_session_with_seed(42)
-
-    train <- data.tb %>%
-      sits::sits_train(ml_method = ml_method)
-
-    # sits::sits_save_keras(train, "train/model.h5", "train/model.rds")
-
-    # keras::use_session_with_seed(42, disable_gpu = FALSE, disable_parallel_cpu = FALSE)
-    # train <- sits::sits_load_keras("train/model.h5", "train/model.rds")
-
-  }
-  # else if (is_model(model_args, sits::sits_svm))
-  #   return("sits_svm")
-
-  # keras::use_session_with_seed(42, disable_gpu = FALSE, disable_parallel_cpu = FALSE)
-  return(train)
-}
-
+#
+# sits_train <- function (data.tb, ml_method = sits::sits_svm())
+# {
+#
+#   train <- NULL
+#
+#   model_args <- ls(environment(ml_method))
+#   model_args <- model_args[!model_args %in% c("result", "result_fun", "...")]
+#
+#   if(is_model(model_args, sits::sits_deeplearning)){
+#
+#     # keras::use_session_with_seed(42)
+#
+#     train <- data.tb %>%
+#       sits::sits_train(ml_method = ml_method)
+#
+#     # sits::sits_save_keras(train, "train/model.h5", "train/model.rds")
+#
+#     # keras::use_session_with_seed(42, disable_gpu = FALSE, disable_parallel_cpu = FALSE)
+#     # train <- sits::sits_load_keras("train/model.h5", "train/model.rds")
+#
+#   }
+#   # else if (is_model(model_args, sits::sits_svm))
+#   #   return("sits_svm")
+#
+#   # keras::use_session_with_seed(42, disable_gpu = FALSE, disable_parallel_cpu = FALSE)
+#   return(train)
+# }
+#
 
 
 sits_coverage <- function (service = "RASTER", name, timeline = NULL, bands = NULL,

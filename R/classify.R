@@ -1,17 +1,20 @@
 #' @export
-classify <- function(tree, script){
+classify <- function(script){
 
-  if (tree_exists(tree))
-    stop(paste0("Already exist the tree name: '", tree, "'."))
+  tree <- getOption("sits.rep.env$CURRENT_TREE")
 
-  tree <- start_tree(gsub('^\\.|/| |\\$|?|@|#|%|&|\\*|\\(|\\)|^|¨', '', tree))
+  if(is.null(tree))
+    stop("No tree defined. Use the function 'useTree' to define a tree.")
+
+
+  # if (tree_exists(tree))
+  #   stop(paste0("Already exist the tree name: '", tree, "'."))
+  #
+  # tree <- start_tree(gsub('^\\.|/| |\\$|?|@|#|%|&|\\*|\\(|\\)|^|¨', '', tree))
 
   tryCatch({
 
-    new_process <- new_process(tree = tree,
-                               parent = NULL,
-                               process_name = sits.rep.env$config$CLASSIFY_PROCESS_DIR_NAME)
-
+    new_process <- new_process(tree = tree, process_name = sits.rep.env$config$CLASSIFY_PROCESS_DIR_NAME)
     copy_script_path <- copy_script(script, new_process)
 
     # TODO

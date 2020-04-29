@@ -17,11 +17,15 @@ Imports:
     sits (== 1.12.6)
 Collate:
     'reproduce.R'
+    'useTree.R'
     'plot_tree.R'
     'classify.R'
     'copy_script.R'
+    'smooth.R'
+    'merge.R'
     'docker.R'
     'hash.R'
+    'build.R'
     'json.R'
     'library.R'
     'overwrite_sits.R'

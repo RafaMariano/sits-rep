@@ -1,9 +1,14 @@
 #' @export
-pos_processing <- function(tree, parent, process, func){
+pos_processing <- function(parent, process, func){
 
   # parent_split <- strsplit(parent, "/")[[1]]
   # tree <- gsub('^\\.|/| |\\$|?|@|#|%|&|\\*|\\(|\\)|^|¨', '', parent_split[1])
   # parent <- gsub('^\\.|/| |\\$|?|@|#|%|&|\\*|\\(|\\)|^|¨', '', parent_split[2])
+  tree <- getOption("sits.rep.env$CURRENT_TREE")
+
+  if(is.null(tree))
+    stop("No tree defined. Use the function 'useTree' to define a tree.")
+
   new_process <- new_process(tree = tree, parent = parent, process_name = process)
 
   tryCatch({

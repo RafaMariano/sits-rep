@@ -25,7 +25,7 @@ Collate:
     'merge.R'
     'docker.R'
     'hash.R'
-    'build.R'
+    'buildContainer.R'
     'json.R'
     'library.R'
     'overwrite_sits.R'

@@ -1,12 +1,15 @@
 #' @export
-build <- function(tree, reproduce, tag = NULL){
+buildContainer <- function(reproduce, tag = NULL){
 
   # Verificar se existe o Python instalado e o reticulate para usar o docker.
   # talvez adicionar uma opção bash ou pacote docker?
   # https://github.com/bhaskarvk/docker
 
-  if (tree_exists(tree) == FALSE)
-    stop("The tree not exist!")
+  tree <- getOption("sits.rep.env$CURRENT_TREE")
+
+  if(is.null(tree))
+    stop("No tree defined. Use the function 'useTree' to define a tree.")
+
 
   reproduce_dir <- .reproduce_dir_exists(tree, reproduce)
   if(reproduce_dir == FALSE)

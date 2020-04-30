@@ -37,7 +37,7 @@ classify <- function(script){
 
   }, error = function(cond){
 
-    if(delete_path(tree) == 1)
+    if(delete_path(paste0(tree, "/classification")) == 1)
       message(paste0("It is not possible delete tree directory '", tree, "'."))
 
     # delete_branch_of_tree(tree = tree, process = sits.rep.env$config$CLASSIFY_PROCESS_DIR_NAME)
@@ -54,6 +54,9 @@ classify <- function(script){
   env$train <- sits_train
   env$sits_coverage <- sits_coverage
   env$sits_classify_cubes <- sits_classify_cubes
+  env$wd_original <- getwd()
+  env$getwd <- function(){return(env$wd_original)}
+
   # env$sits_deeplearning <- sits_deeplearning
   # env$sits_svm <- sits_svm
 

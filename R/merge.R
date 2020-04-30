@@ -7,6 +7,10 @@ merge <- function (input_file, input_rds, output) {
 
     for (year in unique(files_years)) {
         year_list <- files_input[files_years == year]
+
+        if(length(year_list) < 2)
+            next
+
         res <- lapply(year_list, raster::raster)
         res$filename <- paste0(output, "/mosaic_", sprintf("MT_%s.tif",year))
         do.call(raster::merge, res)

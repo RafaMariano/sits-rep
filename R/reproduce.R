@@ -1,5 +1,11 @@
 #' @export
-reproduce <- function(tree, process, dir_name){
+reproduce <- function(process, dir_name){
+
+  tree <- getOption("sits.rep.env$CURRENT_TREE")
+
+  if(is.null(tree))
+    stop("No tree defined. Use the function 'useTree' to define a tree.")
+
 
   dir_rep_process <- .get_dir_rep(tree, process, dir_name)
   list_of_process <- branch_to_json(tree, get_branch_of_tree(tree, process))

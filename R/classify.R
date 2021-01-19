@@ -17,14 +17,8 @@ classify <- function(script){
     new_process <- new_process(tree = tree, process_name = sits.rep.env$config$CLASSIFY_PROCESS_DIR_NAME)
     copy_script_path <- copy_script(script, new_process)
 
-    # TODO
-    # #gerar uma semente aleatoria
-
-
     # Documentação R: Random Number Generation (RNG)
     # RNGversion can be used to set the random generators as they were in an earlier R version (for reproducibility).
-
-    # seed = 42
     seed = sample(0:2^18, 1)
     set.seed(seed)
 
